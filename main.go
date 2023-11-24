@@ -13,6 +13,8 @@ func handleFoo(c *fiber.Ctx) error {
 func main() {
 
 	app := fiber.New()
+
+	
 	app.Get("/foo", handleFoo)
 	log.Fatal(app.Listen(":3000"))
 
