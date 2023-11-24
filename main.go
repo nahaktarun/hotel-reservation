@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,11 +17,13 @@ func handleUser(c *fiber.Ctx) error {
 
 func main() {
 
+	ListenAddr := flag.String("listenAddr", ":3000", "The listen address of the API server")
+
 	app := fiber.New()
 
 	apiV1 := app.Group("api/v1")
 	app.Get("/foo", handleFoo)
 	apiV1.Get("/user", handleUser)
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen(*ListenAddr))
 
 }
