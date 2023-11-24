@@ -5,15 +5,8 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/nahaktarun/hotel-reservation/api"
 )
-
-func handleFoo(c *fiber.Ctx) error {
-	return c.JSON(map[string]string{"message": "Working just fine..."})
-}
-
-func handleUser(c *fiber.Ctx) error {
-	return c.JSON(map[string]string{"user": "Tarun Nahak"})
-}
 
 func main() {
 
@@ -22,8 +15,8 @@ func main() {
 	app := fiber.New()
 
 	apiV1 := app.Group("api/v1")
-	app.Get("/foo", handleFoo)
-	apiV1.Get("/user", handleUser)
+	apiV1.Get("/user", api.HandleGetUsers)
+	apiV1.Get("/user/:id", api.HandleGetUser)
 	log.Fatal(app.Listen(*ListenAddr))
 
 }
