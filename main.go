@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/nahaktarun/hotel-reservation/api"
 	"github.com/nahaktarun/hotel-reservation/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -32,11 +33,15 @@ func main() {
 		FirstName: "Tarun",
 		LastName:  "Nahak",
 	}
-	res, err := col1.InsertOne(ctx, user)
+	_, err = col1.InsertOne(ctx, user)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(res)
+	var james types.User
+	if err := col1.FindOne(ctx, bson.M{}).Decode(&james); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(james)
 
 	ListenAddr := flag.String("listenAddr", ":3000", "The listen address of the API server")
 	flag.Parse()
