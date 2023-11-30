@@ -16,6 +16,13 @@ const dbUri = "mongodb://localhost:27017"
 const dbName = "hotel-reservation"
 const userCol1 = "users"
 
+// Error handling
+var config = fiber.Config{
+	ErrorHandler: func(c *fiber.Ctx, err error) error {
+		return c.JSON(map[string]string{"error": err.Error()})
+	},
+}
+
 func main() {
 	ListenAddr := flag.String("listenAddr", ":3000", "The listen address of the API server")
 	flag.Parse()
@@ -27,7 +34,7 @@ func main() {
 
 	userHandler := api.NewUserHandler(db.NewMongoUserStore(client))
 
-	app := fiber.New()
+	app := fiber.New(config)
 	apiV1 := app.Group("api/v1")
 
 	apiV1.Get("/user", userHandler.HandleGetUsers)
