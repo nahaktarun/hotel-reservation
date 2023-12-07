@@ -1,26 +1,46 @@
 package main
 
 import (
+	"context"
+	"flag"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/nahaktarun/hotel-reservation/api"
+	"github.com/nahaktarun/hotel-reservation/db"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func handleFoo(c *fiber.Ctx) error {
-	return c.JSON(map[string]string{"message": "Working just fine..."})
-}
+const dbUri = "mongodb://localhost:27017"
+const dbName = "hotel-reservation"
+const userCol1 = "users"
 
-func handleUser(c *fiber.Ctx) error {
-	return c.JSON(map[string]string{"user": "Tarun Nahak"})
+// Error handling
+var config = fiber.Config{
+	ErrorHandler: func(c *fiber.Ctx, err error) error {
+		return c.JSON(map[string]string{"error": err.Error()})
+	},
 }
 
 func main() {
+	ListenAddr := flag.String("listenAddr", ":3000", "The listen address of the API server")
+	flag.Parse()
 
-	app := fiber.New()
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(dbUri))
+	if err != nil {
+		panic(err)
+	}
 
+	userHandler := api.NewUserHandler(db.NewMongoUserStore(client,dbName))
+
+	app := fiber.New(config)
 	apiV1 := app.Group("api/v1")
-	app.Get("/foo", handleFoo)
-	apiV1.Get("/user", handleUser)
-	log.Fatal(app.Listen(":3000"))
+	apiV1.Put("/user/:id", userHandler.HandlePutUser)
+	apiV1.Get("/user", userHandler.HandleGetUsers)
+	apiV1.Post("/user", userHandler.HandlePostUser)
+	apiV1.Get("/user/:id", userHandler.HandleGetUser)
+	apiV1.Delete("/user/:id", userHandler.HandleDeleteUser)
+	log.Fatal(app.Listen(*ListenAddr))
 
 }
