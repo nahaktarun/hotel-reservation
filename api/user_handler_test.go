@@ -1,11 +1,16 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"log"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/nahaktarun/hotel-reservation/db"
+	"github.com/nahaktarun/hotel-reservation/types"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -34,4 +39,33 @@ func (tdb *testDb) teardown(t *testing.T) {
 func TestPostUser(t *testing.T) {
 	tdb := setup(t)
 	defer tdb.teardown(t)
+
+	app := fiber.New()
+	userHandler := NewUserHandler(tdb.UserStore)
+	app.Post("/", userHandler.HandlePostUser)
+
+	params := types.CreateUserParams{
+		Email:     "some@foo.com",
+		FirstName: "james",
+		LastName:  "nickos",
+		Password:  "fsdfadsfah",
+	}
+	b, _ := json.Marshal(params)
+	req := httptest.NewRequest("POST", "/", bytes.NewReader(b))
+	req.Header.Add("Content-Type", "application/json")
+	resp, _ := app.Test(req)
+
+	var user types.User
+
+	json.NewDecoder(resp.Body).Decode(&user)
+	if user.FirstName != params.FirstName {
+		t.Errorf("Expected username %s got %s", params.FirstName, user.FirstName)
+	}
+	if user.LastName != params.LastName {
+		t.Errorf("Expected lastName %s got %s", params.LastName, user.LastName)
+	}
+	if user.Email != params.Email {
+		t.Errorf("Expected email %s got %s", params.Email, user.Email)
+	}
+
 }
